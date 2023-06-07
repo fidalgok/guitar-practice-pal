@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .form-field-wrap.required>label.form-field-label {
+        position: relative;
+    }
+
+    .form-field-wrap.required>label.form-field-label::after {
+        content: '•';
+        position: absolute;
+        left: -0.7em;
+        top: -0.35em;
+        color: var(--red);
+        font-size: 1.4em;
+    }
+}
