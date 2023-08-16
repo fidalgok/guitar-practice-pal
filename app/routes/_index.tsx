@@ -173,19 +173,19 @@ export default function Index() {
   function initializePlayer() {
     if (videoID) {
       // this doesn't run on a blank page. Need to initialize the player after form submissions too.
-      console.log('have a video id, initialize the player')
-      // ok the page is loaded, determin the player size based on the width of the parent container
+      //console.log('have a video id, initialize the player')
+      // ok the page is loaded, determine the player size based on the width of the parent container
       // and the aspect ratio of the video.
       let playerContainer = playerContainerRef.current;
       let playerWidth = playerContainer?.clientWidth || 325;
       let playerHeight = playerWidth * 0.5625;
-      console.log(playerWidth, playerHeight)
+      //console.log(playerWidth, playerHeight)
       player = new YT.Player('player', {
         videoId: videoID,
         playerVars: {
           start: startTime > 0 ? startTime : 0,
           autoplay: 0,
-          controls: 0,
+          controls: 1,
         },
         events: {
           'onReady': onPlayerReady,
@@ -198,7 +198,7 @@ export default function Index() {
     }
   }
   function handleYouTubePlayerReady() {
-    console.log('iFrame API is ready, create the player.')
+    //console.log('iFrame API is ready, create the player.')
     initializePlayer();
   }
   useEffect(() => {
@@ -236,7 +236,7 @@ export default function Index() {
   }, [videoID, startTime, endTime, loop, speed]);
 
   useEffect(() => {
-    console.log(navigation.state)
+    //console.log(navigation.state)
 
     if (navigation.state === 'idle') {
       if (!player && videoID && window.YT) {
@@ -352,7 +352,7 @@ export default function Index() {
         </Form>
 
         {videoID ? (
-          <div ref={playerContainerRef} className="grid grid-cols-1 grid-rows-2 w-full md:max-w-[768px]">
+          <div ref={playerContainerRef} className="grid grid-cols-1 grid-rows-2 w-full md:aspect-video">
             <div id="player" className="w-full"></div>
             <div className="mt-2">
               <Timeline player={playerRef} settingsFetcher={settingsFetcher} />
@@ -414,7 +414,7 @@ interface TimelineProps {
 }
 function Timeline({ player, settingsFetcher }: TimelineProps) {
   const [percentage, setPercentage] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
+  const [currentTime, setCurrentTime] = useState(player.current?.getCurrentTime() || 0);
   const [playerDuration, setPlayerDuration] = useState(0);
   const [isPointerDown, setIsPointerDown] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -438,8 +438,8 @@ function Timeline({ player, settingsFetcher }: TimelineProps) {
     const playing = currentPlayer?.getPlayerState() === 1;
     const currentTime = currentPlayer?.getCurrentTime() || 0
     const duration = currentPlayer?.getDuration() || 0
-    console.log(`tick: Playing = ${isPlaying}`)
-    if (duration > 0) {
+    if (duration > 0 && isPlaying === true) {
+      //console.log(`tick: Playing = ${playing} isPlaying = ${isPlaying}`)
       setPercentage(currentTime / duration * 100);
       setCurrentTime(Math.round(currentTime));
       setPlayerDuration(Math.round(duration));
@@ -452,7 +452,7 @@ function Timeline({ player, settingsFetcher }: TimelineProps) {
   }, isPointerDown ? null : 1000)
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement> | PointerEvent | React.TouchEvent<HTMLDivElement> | TouchEvent) => {
-    console.log('pointer down')
+    //console.log('pointer down')
     let clientX: number;
     if (e instanceof PointerEvent || e.type === 'pointerdown') {
       timelineRef.current?.setPointerCapture((e as PointerEvent).pointerId)
@@ -472,7 +472,7 @@ function Timeline({ player, settingsFetcher }: TimelineProps) {
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement> | PointerEvent | React.TouchEvent<HTMLDivElement> | TouchEvent) => {
-    console.log('moving pointer', isPointerDown)
+    //console.log('moving pointer', isPointerDown)
     let clientX: number;
     if (e instanceof PointerEvent || e.type === 'pointermove') {
 
@@ -504,7 +504,7 @@ function Timeline({ player, settingsFetcher }: TimelineProps) {
     }
     updateTimeline(clientX, true);
     setIsPointerDown(false);
-    console.log('removing pointer events')
+
     window.removeEventListener('pointermove', handlePointerMove);
     window.removeEventListener('pointerup', handlePointerUp);
 
@@ -514,6 +514,7 @@ function Timeline({ player, settingsFetcher }: TimelineProps) {
 
   const updateTimeline = (clientX: number, seekTo?: boolean) => {
     const rect = timelineRef?.current?.getBoundingClientRect();
+    //console.log({ clientX, rect })
     if (!rect) {
       return;
     }
@@ -528,6 +529,8 @@ function Timeline({ player, settingsFetcher }: TimelineProps) {
     if (player.current) {
       const currentPlayer = player.current;
       const newTime = clampedPercentage / 100 * currentPlayer.getDuration();
+      // here we need to update a variable to the new time while we wait for the player to seek to the correct part of the timeline
+      setCurrentTime(newTime)
       if (seekTo)
         currentPlayer.seekTo(newTime, true);
     }
