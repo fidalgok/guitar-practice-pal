@@ -10,6 +10,7 @@ import {
 import { VideoCameraIcon, PlayIcon, PauseIcon, ArrowRightOnRectangleIcon, ArrowLeftOnRectangleIcon, ArrowPathIcon, AdjustmentsHorizontalIcon, XCircleIcon } from '@heroicons/react/24/outline'
 import { useRef, useEffect, useState, useId } from "react";
 import * as Popover from '@radix-ui/react-popover';
+import useKeyPress from "~/utils/hooks/useKeyPress";
 
 
 export const meta: V2_MetaFunction = () => {
@@ -135,7 +136,13 @@ export default function Index() {
     console.log(settingsFetcher.formData.values())
     console.log(settingsFetcher.data)
   }
-
+  useKeyPress('Space', () => {
+    if (playerRef.current?.getPlayerState() === YT.PlayerState.PAUSED) {
+      playerRef.current.playVideo()
+    } else {
+      playerRef.current?.pauseVideo()
+    }
+  })
   function checkVideoTime() {
     // console.log({ currentTime: player.getCurrentTime(), loop, endTime })
     if (player) {
